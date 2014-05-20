@@ -1,7 +1,7 @@
 {
 	"name": "milo/github-api-nette",
 	"type": "library",
-	"description": "Nette framework extension for Github API easy access",
+	"description": "Nette Framework extension for Github API easy access",
 	"license": ["MIT"],
 	"authors": [
 		{
@@ -12,9 +12,11 @@
 	],
 	"require": {
 		"php": ">=5.4.0",
-		"milo/github-api": "~1.0.0"
+		"milo/github-api": "~1.0.1",
+		"nette/nette": "~2.0"
 	},
 	"autoload": {
-		"classmap": ["src/"]
+		"classmap": ["src/NetteExtension/"],
+		"files": ["src/NetteBC/nette-bc.php"]
 	}
 }

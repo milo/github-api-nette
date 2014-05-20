@@ -1,0 +1,177 @@
+<?php
+
+use Milo\Github;
+
+/** @var  Github\NetteExtension\User|NULL  $user */
+/** @var  Github\OAuth\Token|NULL  $token */
+/** @var  Github\Http\IClient  $client */
+/** @var  \stdClass|NULL  $rateLimit */
+/** @var  bool  $freshLimit */
+/** @var  Github\Http\Message[]  $messages */
+?>
+<style>
+	#tracy-debug .milo-GithubPanel .tracy-inner,
+	#nette-debug .milo-GithubPanel .nette-inner {
+		width: 700px;
+		padding-right: 20px; /* Prevent horizontal scrollbar */
+	}
+
+	#tracy-debug .milo-GithubPanel .tracy-inner table.messages,
+	#nette-debug .milo-GithubPanel .nette-inner table.messages {
+		width: 100%;
+	}
+
+	#tracy-debug .milo-GithubPanel .tracy-inner table .row-separator,
+	#nette-debug .milo-GithubPanel .nette-inner table .row-separator {
+		font-size: 1px;
+		height: 8px;
+		padding: 0;
+		background-color: #aaa;
+	}
+
+	#tracy-debug .milo-GithubPanel .yes,
+	#nette-debug .milo-GithubPanel .yes,
+	#tracy-debug .milo-GithubPanel .stress,
+	#nette-debug .milo-GithubPanel .stress {
+		color: #008000;
+		font-weight: bold;
+	}
+
+	#tracy-debug .milo-GithubPanel .no,
+	#nette-debug .milo-GithubPanel .no {
+		color: #CC2222;
+	}
+
+	#tracy-debug .milo-GithubPanel .code,
+	#nette-debug .milo-GithubPanel .code {
+		font: 9pt/1.5 Consolas,monospace;
+	}
+
+	#tracy-debug .milo-GithubPanel .outdated,
+	#nette-debug .milo-GithubPanel .outdated {
+		color: #AAA;
+	}
+
+	#tracy-debug .milo-GithubPanel .bigger-col,
+	#nette-debug .milo-GithubPanel .bigger-col {
+		width: 100%;
+	}
+
+	#tracy-debug .milo-GithubPanel .break-word,
+	#nette-debug .milo-GithubPanel .break-word {
+		word-wrap: break-word;
+	}
+
+	#tracy-debug .milo-GithubPanel .break-word pre,
+	#nette-debug .milo-GithubPanel .break-word pre {
+		white-space: pre-wrap;
+	}
+</style>
+<div class="milo-GithubPanel">
+	<h1>Github API</h1>
+	<div class="tracy-inner nette-inner">
+		<table>
+			<tbody>
+				<tr>
+					<th>Rate Limit</th>
+					<td class="code">
+					<?php if ($rateLimit): ?>
+						<span class="<?php echo $freshLimit ? '' : 'outdated' ?>"><strong><?php echo $rateLimit->remaining; ?></strong>/<strong><?php echo $rateLimit->limit ?></strong>
+						<?php if ($rateLimit->reset): ?>
+							reset in <?php echo $this->createInterval($rateLimit->reset)->format('%H:%I:%S') ?>
+						<?php endif ?>
+						</span>
+					<?php else: ?>
+						(not available)
+					<?php endif ?>
+					</td>
+				</tr>
+
+				<tr>
+					<th>Authorized</th>
+					<td class="code">
+					<?php if ($user): ?>
+						<?php if ($user->isLoggedIn()): ?>
+							<span class='yes'>yes</span>, <?php echo $this->escape($user->name) . ' (' . $this->escape($user->login) . ')' ?>
+						<?php else: ?>
+							<span class='no'>no</span>
+						<?php endif ?>
+					<?php else: ?>
+						<span class='no'>no</span>, <i>clientId</i> and <i>clientSecret</i> not set
+					<?php endif ?>
+					</td>
+				</tr>
+
+				<?php if ($token): ?>
+				<tr>
+					<th>Token scopes</th>
+					<td class="code"><?php echo $this->escape(implode(', ', $token->getScopes() + ['(default)'])) ?></td>
+				</tr>
+				<?php endif ?>
+
+				<tr>
+					<th>HTTP client</th>
+					<td class="code">
+						<?php echo get_class($client); ?>
+						<?php if ($client instanceof Github\Http\CachedClient): ?>
+							<br><?php echo get_class($client->getInnerClient()) ?>
+						<?php endif ?>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+
+		<?php if (count($messages)): ?>
+			<h2>HTTP Traffic</h2>
+			<table class="messages">
+				<colgroup>
+					<col/>
+					<col/>
+					<col class="bigger-col"/>
+				</colgroup>
+				<tbody>
+				<?php $firstLoop = TRUE ?>
+				<?php foreach ($messages as $message): ?>
+					<?php if ($message instanceof Github\Http\Request): ?>
+						<?php if (!$firstLoop): ?>
+							<tr><th class="row-separator" colspan="3">&nbsp;</th></tr>
+						<?php endif ?>
+						<tr>
+							<th rowspan="3">Request</th>
+							<td class="code stress"><?php echo $this->escape($message->getMethod()) ?></td>
+							<td class="code stress break-word"><?php echo $this->escape($message->getUrl()) ?></td>
+						</tr>
+						<tr>
+							<td class="code">Headers</td>
+							<td><?php echo $this->dumpHtml($message->getHeaders()) ?></td>
+						</tr>
+						<tr>
+							<td class="code">Content</td>
+							<td class="break-word"><?php echo $this->dumpHtml($message->getContent()) ?></td>
+						</tr>
+					<?php elseif ($message instanceof Github\Http\Response): ?>
+						<?php $isPrevious = FALSE ?>
+						<?php do { ?>
+							<tr>
+								<th rowspan="3">Response<?php echo $isPrevious ? '<br>(previous)' : '' ?></th>
+								<td class="code">Code</td>
+								<td class="code stress"><?php echo $this->escape($message->getCode()) ?></td>
+							</tr>
+							<tr>
+								<td class="code">Headers</td>
+								<td><?php echo $this->dumpHtml($message->getHeaders()) ?></td>
+							</tr>
+							<tr>
+								<td class="code">Content</td>
+								<td class="break-word"><?php echo $this->dumpHtml($message->getContent()) ?></td>
+							</tr>
+							<?php $isPrevious = TRUE ?>
+						<?php } while ($message = $message->getPrevious()); ?>
+					<?php endif ?>
+					<?php $firstLoop = FALSE ?>
+				<?php endforeach ?>
+				</tbody>
+			</table>
+		<?php endif ?>
+	</div>
+</div>
