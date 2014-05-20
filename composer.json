@@ -1,0 +1,20 @@
+{
+	"name": "milo/github-api-nette",
+	"type": "library",
+	"description": "Nette framework extension for Github API easy access",
+	"license": ["MIT"],
+	"authors": [
+		{
+			"name": "Miloslav Hůla",
+			"email": "miloslav.hula@gmail.com",
+			"homepage": "https://github.com/milo"
+		}
+	],
+	"require": {
+		"php": ">=5.4.0",
+		"milo/github-api": "~1.0.0"
+	},
+	"autoload": {
+		"classmap": ["src/"]
+	}
+}
