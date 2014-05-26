@@ -85,29 +85,20 @@ use Milo\Github;
 						(not available)
 					<?php endif ?>
 					</td>
-				</tr>
 
-				<tr>
 					<th>Authorized</th>
 					<td class="code">
-					<?php if ($user): ?>
-						<?php if ($user->isLoggedIn()): ?>
-							<span class='yes'>yes</span>, <?php echo $this->escape($user->name) . ' (' . $this->escape($user->login) . ')' ?>
+						<?php if ($user): ?>
+							<?php if ($user->isLoggedIn()): ?>
+								<span class='yes'>yes</span>, <?php echo $this->escape($user->name) . ' (' . $this->escape($user->login) . ')' ?>
+							<?php else: ?>
+								<span class='no'>no</span>
+							<?php endif ?>
 						<?php else: ?>
-							<span class='no'>no</span>
+							<span class='no'>no</span>, <i>clientId</i> and <i>clientSecret</i> not set
 						<?php endif ?>
-					<?php else: ?>
-						<span class='no'>no</span>, <i>clientId</i> and <i>clientSecret</i> not set
-					<?php endif ?>
 					</td>
 				</tr>
-
-				<?php if ($token): ?>
-				<tr>
-					<th>Token scopes</th>
-					<td class="code"><?php echo $this->escape(implode(', ', $token->getScopes() + ['(default)'])) ?></td>
-				</tr>
-				<?php endif ?>
 
 				<tr>
 					<th>HTTP client</th>
@@ -117,6 +108,9 @@ use Milo\Github;
 							<br><?php echo get_class($client->getInnerClient()) ?>
 						<?php endif ?>
 					</td>
+
+					<th>Token scopes</th>
+					<td class="code"><?php if ($token) { echo $this->escape(implode(', ', $token->getScopes() + ['(default)'])); } else { ?>(not available)<?php } ?></td>
 				</tr>
 			</tbody>
 		</table>
