@@ -101,14 +101,19 @@ use Milo\Github;
 				</tr>
 
 				<tr>
-					<th>HTTP client</th>
-					<td class="code">
+					<th rowspan='2'>HTTP client</th>
+					<td rowspan='2' class="code">
 						<?php echo get_class($client); ?>
 						<?php if ($client instanceof Github\Http\CachedClient): ?>
 							<br><?php echo get_class($client->getInnerClient()) ?>
 						<?php endif ?>
 					</td>
 
+					<th>Token</th>
+					<td class="code"><?php if ($token): ?><span class='yes'>yes</span>, <?php echo substr($token->getValue(), 0, 5) . '...'; else: ?><span class='no'>no</span><?php endif ?></td>
+				</tr>
+
+				<tr>
 					<th>Token scopes</th>
 					<td class="code"><?php if ($token) { echo $this->escape(implode(', ', $token->getScopes() + ['(default)'])); } else { ?>(not available)<?php } ?></td>
 				</tr>

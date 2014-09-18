@@ -1,7 +1,7 @@
 # Introduction
 This is the [Nette Framework](http://nette.org) extension for [milo/github-api](https://github.com/milo/github-api) library use. It brings you:
 
-- presenter prepared for sign-in and sign-out actions
+- prepared presenter for sign-in and sign-out actions
 - Tracy panel
 - `Milo\Github\Api` service in container
 - and few more things...
@@ -37,7 +37,14 @@ And when you set `clientId` and `clientSecret` (mentioned later) in config file,
 # Configuration
 Extension works without any configuration. But your Github API requests will be rate limited and non-authenticated.
 
-Configure the extension in `config.neon`, add secrets to enable the authentication. Now, you are still non-authenticated but your rate limit is higher:
+Configure the extension in `config.neon`. If you have one static token, you can set it manualy:
+```
+github:
+	auth:
+		token: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+```
+
+If you want to obtain the token dynamically by authentication procedure, set the `clientId` and clientSecret`:
 ```
 github:
 	auth:
@@ -45,7 +52,10 @@ github:
 		clientSecret: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
 ```
 
-Advanced configuration:
+You can use both simultaneously. The token obtained by authentication will be used when obtained.
+
+
+Whole configuration:
 ```
 services:
 	ownClient: Milo\Github\Http\StreamClient
@@ -54,6 +64,7 @@ github:
 	cached: FALSE       # (default TRUE) disable HTTP caching (Http\CachedClient will not be used)
 	client: @ownClient  # (default NULL) set own HTTP client
 	auth:
+		token: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
 		clientId: 'xxxxxxxxxxxx'
 		clientSecret: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
 		scopes: ['user', 'repo']  # (default [])

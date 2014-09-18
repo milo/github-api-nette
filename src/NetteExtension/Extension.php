@@ -19,6 +19,7 @@ final class Extension extends BC\Extension
 		'client' => NULL,
 		'cached' => TRUE,
 		'auth' => [
+			'token' => NULL,
 			'clientId' => NULL,
 			'clientSecret' => NULL,
 			'scopes' => [],
@@ -61,6 +62,13 @@ final class Extension extends BC\Extension
 		$apiService = $builder->addDefinition($this->prefix('api'))
 			->setClass('Milo\Github\Api', [$clientService]);
 
+		if (isset($config['auth']['token'])) {
+			$apiService->addSetup('?->setToken(new Milo\Github\OAuth\Token(?))', [
+				'@self',
+				(string) $config['auth']['token']
+			]);
+		}
+
 		# Login
 		$userService = NULL;
 		Validators::assert($config['auth'], 'array');
@@ -95,7 +103,7 @@ final class Extension extends BC\Extension
 			]);
 
 			# Api::setDefaultParameters()
-			if ($config['auth']['asUrlParameters']) {
+			if ($config['auth']['asUrlParameters'] && empty($config['auth']['token'])) {
 				$apiService->addSetup('if (!?->hasToken()) { ?->setDefaultParameters(?); }', [
 					"@{$this->prefix('login')}",
 					'@self',
