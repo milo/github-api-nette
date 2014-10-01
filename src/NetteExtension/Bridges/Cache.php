@@ -13,11 +13,19 @@ use Nette;
  */
 class Cache extends Nette\Object implements Github\Storages\ICache
 {
+	/** @var int|NULL */
+	private $expire;
+
 	/** @var Nette\Caching\Cache */
 	private $cache;
 
-	public function __construct(Nette\Caching\IStorage $storage)
+
+	/**
+	 * @param  int|NULL  seconds to expire; NULL means never
+	 */
+	public function __construct($timeout, Nette\Caching\IStorage $storage)
 	{
+		$this->expire = $timeout;
 		$this->cache = new Nette\Caching\Cache($storage, 'milo.github-api');
 	}
 
@@ -29,7 +37,11 @@ class Cache extends Nette\Object implements Github\Storages\ICache
 	 */
 	public function save($key, $value)
 	{
-		$this->cache->save($key, $value);
+		$dp = $this->expire === NULL
+			? NULL
+			: [Nette\Caching\Cache::EXPIRE => $this->expire];
+
+		$this->cache->save($key, [$value, $this->expire], $dp);
 		return $value;
 	}
 
@@ -40,7 +52,12 @@ class Cache extends Nette\Object implements Github\Storages\ICache
 	 */
 	public function load($key)
 	{
-		return $this->cache->load($key);
+		$cached = $this->cache->load($key);
+		if (!is_array($cached) || $cached[1] !== $this->expire) {
+			return NULL;
+		}
+
+		return $cached[0];
 	}
 
 }

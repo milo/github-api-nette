@@ -38,9 +38,12 @@ final class Extension extends BC\Extension
 			throw new \LogicException("Option client must be a service name, '$config[client]' given.");
 		}
 
-		if ($config['cached']) {
+		$cached = $this->sanitizeCached($config['cached']);
+		if ($cached) {
 			$builder->addDefinition($this->prefix('client.cache'))
-				->setClass('Milo\Github\NetteExtension\Bridges\Cache')
+				->setClass('Milo\Github\NetteExtension\Bridges\Cache', [
+					is_int($cached) ? $cached : NULL,
+				])
 				->setAutowired(FALSE);
 
 			$clientService = "@{$this->prefix('client')}";
@@ -48,6 +51,7 @@ final class Extension extends BC\Extension
 				->setClass('Milo\Github\Http\CachedClient', [
 					"@{$this->prefix('client.cache')}",
 					$config['client'],
+					$cached !== TRUE,
 				])
 				->setAutowired(FALSE);
 
@@ -151,6 +155,25 @@ final class Extension extends BC\Extension
 		if ($config['debugger']) {
 			$classType->methods['initialize']->addBody($method . '($this->getService(?));', [$this->prefix('panel')]);
 		}
+	}
+
+
+	/**
+	 * @return mixed
+	 */
+	private function sanitizeCached($value)
+	{
+		if (is_bool($value)) {
+			return $value;
+
+		} elseif ((is_string($value) && strtoupper($value) === 'INF') || $value === INF) {
+			return INF;
+
+		} elseif (is_int($value) && $value > 0) {
+			return $value;
+		}
+
+		throw new \LogicException("Configuration 'cached' must be bool, positive integer or INF, but '$value' given.");
 	}
 
 

@@ -61,7 +61,7 @@ services:
 	ownClient: Milo\Github\Http\StreamClient
 
 github:
-	cached: FALSE       # (default TRUE) disable HTTP caching (Http\CachedClient will not be used)
+	cached: FALSE       # (default TRUE) read below...
 	client: @ownClient  # (default NULL) set own HTTP client
 	auth:
 		token: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
@@ -69,6 +69,18 @@ github:
 		clientSecret: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
 		scopes: ['user', 'repo']  # (default [])
 ```
+
+
+# Caching
+The `cached` configuration option controls caching mechanism.
+- `FALSE` - no caching will be used
+
+With these, Http\CachedClient will be used:
+- `TRUE` - updates will be checked every request
+- `(int)` - updates will not be checked for int seconds
+- `INF` - updates will never be checked (permanent cache)
+
+**WARNING** - Values `(int)` and `INF` are for development purpose only and should never be used on production. It's because the cache may be outdated and Github may hold newer data.
 
 
 # Authentication
