@@ -14,10 +14,14 @@ abstract class Presenter extends Nette\Application\UI\Presenter
 	/** @var Github\OAuth\Login */
 	protected $login;
 
+	/** @var Github\NetteExtension\User */
+	protected $githubUser;
 
-	public function __construct(Github\OAuth\Login $login)
+
+	public function injectGithubDependencies(Github\OAuth\Login $login, Github\NetteExtension\User $user)
 	{
 		$this->login = $login;
+		$this->githubUser = $user;
 	}
 
 
