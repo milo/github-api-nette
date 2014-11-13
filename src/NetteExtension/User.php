@@ -11,6 +11,7 @@ use Nette;
  *
  * @author  Miloslav Hůla (https://github.com/milo)
  *
+ * @property-read  array        $info
  * @property-read  string|NULL  $id
  * @property-read  string|NULL  $login
  * @property-read  string|NULL  $name
@@ -86,12 +87,23 @@ class User extends Nette\Object
 
 
 	/**
+	 * @return array
+	 */
+	public function getInfo()
+	{
+		return $this->info;
+	}
+
+
+	/**
 	 * @param  string
 	 * @return string|NULL
 	 */
 	public function & __get($name)
 	{
-		if (array_key_exists($name, $this->info)) {
+		if (strtolower($name) === 'info') {
+			return $this->info;
+		} elseif (array_key_exists($name, $this->info)) {
 			return $this->info[$name];
 		}
 
