@@ -128,7 +128,7 @@ final class Extension extends BC\Extension
 		}
 
 		# Panel
-		if ($config['debugger']) {
+		if ($this->isBarAvailable() && $config['debugger']) {
 			$builder->addDefinition($this->prefix('messages'))
 				->setClass('Milo\Github\NetteExtension\Messages')
 				->setAutowired(FALSE);
@@ -151,9 +151,11 @@ final class Extension extends BC\Extension
 
 	protected function afterCompileImplementation($classType, $method)
 	{
-		$config = $this->getConfig($this->defaults);
-		if ($config['debugger']) {
-			$classType->methods['initialize']->addBody($method . '($this->getService(?));', [$this->prefix('panel')]);
+		if ($this->isBarAvailable()) {
+			$config = $this->getConfig($this->defaults);
+			if ($config['debugger']) {
+				$classType->methods['initialize']->addBody($method . '($this->getService(?));', [$this->prefix('panel')]);
+			}
 		}
 	}
 
@@ -174,6 +176,15 @@ final class Extension extends BC\Extension
 		}
 
 		throw new \LogicException("Configuration 'cached' must be bool, positive integer or INF, but '$value' given.");
+	}
+
+
+	/**
+	 * @return bool
+	 */
+	private function isBarAvailable()
+	{
+		return class_exists('Tracy\Debugger') || class_exists('Nette\Diagnostics\Debugger');
 	}
 
 
