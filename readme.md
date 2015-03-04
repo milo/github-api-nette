@@ -12,18 +12,22 @@ The extension is compatible with Nette 2.0.x, 2.1.x and 2.2.x. I'm keeping it co
 
 For installation use [Composer](https://getcomposer.org/):
 ```
+# With Nette >=2.2
 composer require milo/github-api-nette @dev
+
+# With Nette <2.2
+composer require milo/github-api-nette 2.1.*@dev 
 ```
 
-With Nette 2.0.x register the extension in bootstrap:
-```php
-Milo\Github\NetteExtension\Extension::register($configurator);
-```
-
-With a newer Nette version register the extension in `config.neon`:
+Register the extension in `config.neon`:
 ```
 extensions:
 	github: Milo\Github\NetteExtension\Extension
+```
+
+But with Nette 2.0.x register the extension manually in bootstrap:
+```php
+Milo\Github\NetteExtension\Extension::register($configurator);
 ```
 
 Since you register the extension you get a new service in DI container:
@@ -44,7 +48,7 @@ github:
 		token: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
 ```
 
-If you want to obtain the token dynamically by authentication procedure, set the `clientId` and clientSecret`:
+If you want to obtain the token dynamically by authentication procedure, set the `clientId` and `clientSecret`:
 ```
 github:
 	auth:
@@ -86,7 +90,7 @@ With these, Http\CachedClient will be used:
 # Authentication
 To help with OAuth token obtaining, there is a prepared abstract `Milo\Github\NetteExtension\Presenter` for you. Use it in your application as:
 ```php
-namespace App\Module\Presenters;
+namespace App\Presenters;
 
 class GithubPresenter extends Milo\Github\NetteExtension\Presenter
 {
@@ -108,8 +112,10 @@ class GithubPresenter extends Milo\Github\NetteExtension\Presenter
 ```
 
 Create links or redirect to following presenter actions in a usual way:
-- `Module:Presenter:signIn` for logging in
-- `Module:Presenter:signOut` for logging out
+- `Github:signIn` for logging in
+- `Github:signOut` for logging out
+
+**NOTE**: The prepared presenter requires clientId and clientSecret to be configured.
 
 Even you are or you are not authenticated, you have a `github.user` [Milo\Github\NetteExtension\User](https://github.com/milo/github-api-nette/blob/master/src/NetteExtension/User.php) service in DI container. You can check `$user->isLoggedIn()` and get some basic user info like, login, name, avatar URL...
 
@@ -127,4 +133,4 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL SIMON TATHAM BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
