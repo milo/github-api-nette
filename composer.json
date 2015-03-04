@@ -13,7 +13,13 @@
 	"require": {
 		"php": ">=5.4.0",
 		"milo/github-api": "~1.0",
-		"nette/nette": "~2.0"
+		"nette/di": "~2.2"
+	},
+	"conflict": {
+		"nette/nette": "<2.2"
+	},
+	"suggest": {
+		"tracy/tracy": "To use Tracy bar features"
 	},
 	"autoload": {
 		"classmap": ["src/NetteExtension/"],
