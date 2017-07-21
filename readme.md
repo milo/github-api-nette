@@ -1,5 +1,5 @@
 # Introduction
-This is the [Nette Framework](http://nette.org) extension for [milo/github-api](https://github.com/milo/github-api) library use. It brings you:
+This is the [Nette Framework](https://nette.org) extension for [milo/github-api](https://github.com/milo/github-api) library. It brings you:
 
 - prepared presenter for sign-in and sign-out actions
 - Tracy panel
@@ -8,34 +8,28 @@ This is the [Nette Framework](http://nette.org) extension for [milo/github-api](
 
 
 # Installation
-The extension is compatible with Nette 2.0.x, 2.1.x and 2.2.x. I'm keeping it compatible with development branch. If you hit the problem, please, open an [issue](https://github.com/milo/github-api-nette/issues).
+The master branch is compatible with Nette 2.4. For Nette 2.0-2.3 use branches v2.1 and v2.2 (but they are not maintained anymore).
+
+If you hit the problem open an [issue](https://github.com/milo/github-api-nette/issues) please.
 
 For installation use [Composer](https://getcomposer.org/):
 ```
-# With Nette >=2.2
 composer require milo/github-api-nette @dev
-
-# With Nette <2.2
-composer require milo/github-api-nette 2.1.*@dev 
 ```
 
 Register the extension in `config.neon`:
 ```
 extensions:
-	github: Milo\Github\NetteExtension\Extension
+	github: Milo\Github\NetteExtension\Extension(%debugMode%)
 ```
 
-But with Nette 2.0.x register the extension manually in bootstrap:
-```php
-Milo\Github\NetteExtension\Extension::register($configurator);
-```
 
 Since you register the extension you get a new service in DI container:
-- `github.api -> Milo\Github\Api`
+- `github.api` is instance of `Milo\Github\Api`
 
 And when you set `clientId` and `clientSecret` (mentioned later) in config file, you get next two:
-- `github.login -> Milo\Github\OAuth\Login`
-- `github.user -> Milo\Github\NetteExtension\User`
+- `github.login` is instance of `Milo\Github\OAuth\Login`
+- `github.user` is instance of `Milo\Github\NetteExtension\User`
 
 
 # Configuration
@@ -79,12 +73,12 @@ github:
 The `cached` configuration option controls caching mechanism.
 - `FALSE` - no caching will be used
 
-With these, Http\CachedClient will be used:
+With following, `Http\CachedClient` will be used:
 - `TRUE` - updates will be checked every request
 - `(int)` - updates will not be checked for int seconds
 - `INF` - updates will never be checked (permanent cache)
 
-**WARNING** - Values `(int)` and `INF` are for development purpose only and should never be used on production. It's because the cache may be outdated and Github may hold newer data.
+**WARNING** - Values `(int)` and `INF` are for development purpose only and should never be used in production. It's because the cache may be outdated and Github may hold newer data.
 
 
 # Authentication

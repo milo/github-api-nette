@@ -10,19 +10,16 @@ use Milo\Github;
 /** @var  Github\Http\Message[]  $messages */
 ?>
 <style>
-	#tracy-debug .milo-GithubPanel .tracy-inner,
-	#nette-debug .milo-GithubPanel .nette-inner {
+	#tracy-debug .milo-GithubPanel .tracy-inner {
 		width: 700px;
 		padding-right: 20px; /* Prevent horizontal scrollbar */
 	}
 
-	#tracy-debug .milo-GithubPanel .tracy-inner table.messages,
-	#nette-debug .milo-GithubPanel .nette-inner table.messages {
+	#tracy-debug .milo-GithubPanel .tracy-inner table.messages {
 		width: 100%;
 	}
 
-	#tracy-debug .milo-GithubPanel .tracy-inner table .row-separator,
-	#nette-debug .milo-GithubPanel .nette-inner table .row-separator {
+	#tracy-debug .milo-GithubPanel .tracy-inner table .row-separator {
 		font-size: 1px;
 		height: 8px;
 		padding: 0;
@@ -30,46 +27,38 @@ use Milo\Github;
 	}
 
 	#tracy-debug .milo-GithubPanel .yes,
-	#nette-debug .milo-GithubPanel .yes,
-	#tracy-debug .milo-GithubPanel .stress,
-	#nette-debug .milo-GithubPanel .stress {
+	#tracy-debug .milo-GithubPanel .stress {
 		color: #008000;
 		font-weight: bold;
 	}
 
-	#tracy-debug .milo-GithubPanel .no,
-	#nette-debug .milo-GithubPanel .no {
+	#tracy-debug .milo-GithubPanel .no {
 		color: #CC2222;
 	}
 
-	#tracy-debug .milo-GithubPanel .code,
-	#nette-debug .milo-GithubPanel .code {
+	#tracy-debug .milo-GithubPanel .code {
 		font: 9pt/1.5 Consolas,monospace;
 	}
 
-	#tracy-debug .milo-GithubPanel .outdated,
-	#nette-debug .milo-GithubPanel .outdated {
+	#tracy-debug .milo-GithubPanel .outdated {
 		color: #AAA;
 	}
 
-	#tracy-debug .milo-GithubPanel .bigger-col,
-	#nette-debug .milo-GithubPanel .bigger-col {
+	#tracy-debug .milo-GithubPanel .bigger-col {
 		width: 100%;
 	}
 
-	#tracy-debug .milo-GithubPanel .break-word,
-	#nette-debug .milo-GithubPanel .break-word {
+	#tracy-debug .milo-GithubPanel .break-word {
 		word-wrap: break-word;
 	}
 
-	#tracy-debug .milo-GithubPanel .break-word pre,
-	#nette-debug .milo-GithubPanel .break-word pre {
+	#tracy-debug .milo-GithubPanel .break-word pre {
 		white-space: pre-wrap;
 	}
 </style>
 <div class="milo-GithubPanel">
 	<h1>Github API</h1>
-	<div class="tracy-inner nette-inner">
+	<div class="tracy-inner">
 		<table>
 			<tbody>
 				<tr>

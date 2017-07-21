@@ -2,8 +2,10 @@
 
 namespace Milo\Github\NetteExtension;
 
-use Nette;
+use Milo\Github;
+use Nette\DI;
 use Nette\Utils\Validators;
+use Tracy;
 
 
 /**
@@ -11,11 +13,10 @@ use Nette\Utils\Validators;
  *
  * @author  Miloslav Hůla (https://github.com/milo)
  */
-final class Extension extends BC\Extension
+final class Extension extends DI\CompilerExtension
 {
 	/** @var array */
-	public $defaults = [
-		'debugger' => '%debugMode%',
+	private $defaults = [
 		'client' => NULL,
 		'cached' => TRUE,
 		'auth' => [
@@ -27,6 +28,18 @@ final class Extension extends BC\Extension
 		],
 	];
 
+	/** @var bool */
+	private $debugMode;
+
+
+	/**
+	 * @param  bool
+	 */
+	public function __construct($debugMode)
+	{
+		$this->debugMode = (bool) $debugMode;
+	}
+
 
 	public function loadConfiguration()
 	{
@@ -35,21 +48,23 @@ final class Extension extends BC\Extension
 
 		# HTTP client
 		if ($config['client'] !== NULL && !preg_match('/^@.+$/i', $config['client'])) {
-			throw new \LogicException("Option client must be a service name, '$config[client]' given.");
+			throw new \LogicException("Configuration option 'client' must be a service name, '$config[client]' given.");
 		}
 
 		$cached = $this->sanitizeCached($config['cached']);
 		if ($cached) {
-			$builder->addDefinition($this->prefix('client.cache'))
-				->setClass('Milo\Github\NetteExtension\Bridges\Cache', [
+			$builder
+				->addDefinition($this->prefix('client.cache'))
+				->setClass(Github\NetteExtension\Bridges\Cache::class, [
 					is_int($cached) ? $cached : NULL,
 				])
 				->setAutowired(FALSE);
 
-			$clientService = "@{$this->prefix('client')}";
-			$builder->addDefinition($this->prefix('client'))
-				->setClass('Milo\Github\Http\CachedClient', [
-					"@{$this->prefix('client.cache')}",
+			$clientService = '@' . $this->prefix('client');
+			$builder
+				->addDefinition($this->prefix('client'))
+				->setClass(Github\Http\CachedClient::class, [
+					'@' . $this->prefix('client.cache'),
 					$config['client'],
 					$cached !== TRUE,
 				])
@@ -63,8 +78,9 @@ final class Extension extends BC\Extension
 		}
 
 		# API
-		$apiService = $builder->addDefinition($this->prefix('api'))
-			->setClass('Milo\Github\Api', [$clientService]);
+		$apiService = $builder
+			->addDefinition($this->prefix('api'))
+			->setClass(Github\Api::class, [$clientService]);
 
 		if (isset($config['auth']['token'])) {
 			$apiService->addSetup('?->setToken(new Milo\Github\OAuth\Token(?))', [
@@ -78,8 +94,9 @@ final class Extension extends BC\Extension
 		Validators::assert($config['auth'], 'array');
 		if (isset($config['auth']['clientId'], $config['auth']['clientSecret'])) {
 			# Auth.Config
-			$builder->addDefinition($this->prefix('auth.config'))
-				->setClass('Milo\Github\OAuth\Configuration', [
+			$builder
+				->addDefinition($this->prefix('auth.config'))
+				->setClass(Github\OAuth\Configuration::class, [
 					$config['auth']['clientId'],
 					$config['auth']['clientSecret'],
 					$config['auth']['scopes'],
@@ -87,29 +104,31 @@ final class Extension extends BC\Extension
 				->setAutowired(FALSE);
 
 			# Auth.Session
-			$builder->addDefinition($this->prefix('auth.session'))
-				->setClass('Milo\Github\NetteExtension\Bridges\Session')
+			$builder
+				->addDefinition($this->prefix('auth.session'))
+				->setClass(Github\NetteExtension\Bridges\Session::class)
 				->setAutowired(FALSE);
 
 			# Login
-			$builder->addDefinition($this->prefix('login'))
-				->setClass('Milo\Github\OAuth\Login', [
-					"@{$this->prefix('auth.config')}",
-					"@{$this->prefix('auth.session')}",
+			$builder
+				->addDefinition($this->prefix('login'))
+				->setClass(Github\OAuth\Login::class, [
+					'@' . $this->prefix('auth.config'),
+					'@' . $this->prefix('auth.session'),
 					$clientService,
 				]);
 
 			# Api::setToken()
 			$apiService->addSetup('if (?->hasToken()) { ?->setToken(?->getToken()); }', [
-				"@{$this->prefix('login')}",
+				'@' . $this->prefix('login'),
 				'@self',
-				"@{$this->prefix('login')}",
+				'@' . $this->prefix('login'),
 			]);
 
 			# Api::setDefaultParameters()
 			if ($config['auth']['asUrlParameters'] && empty($config['auth']['token'])) {
 				$apiService->addSetup('if (!?->hasToken()) { ?->setDefaultParameters(?); }', [
-					"@{$this->prefix('login')}",
+					'@' . $this->prefix('login'),
 					'@self',
 					[
 						'client_id' => $config['auth']['clientId'],
@@ -119,43 +138,39 @@ final class Extension extends BC\Extension
 			}
 
 			# User
-			$userService = "@{$this->prefix('user')}";
-			$builder->addDefinition($this->prefix('user'))
-				->setClass('Milo\Github\NetteExtension\User', [
-					"@{$this->prefix('login')}",
-					"@{$this->prefix('api')}",
+			$userService = '@' . $this->prefix('user');
+			$builder
+				->addDefinition($this->prefix('user'))
+				->setClass(Github\NetteExtension\User::class, [
+					'@' . $this->prefix('login'),
+					'@' . $this->prefix('api'),
 				]);
 		}
 
 		# Panel
-		if ($this->isBarAvailable() && $config['debugger']) {
-			$builder->addDefinition($this->prefix('messages'))
-				->setClass('Milo\Github\NetteExtension\Messages')
+		if ($this->debugMode && class_exists(Tracy\Debugger::class)) {
+			$builder
+				->addDefinition($this->prefix('messages'))
+				->setClass(Github\NetteExtension\Messages::class)
 				->setAutowired(FALSE);
 
 			$apiService
-				->addSetup('?->getClient()->onRequest([?, "onMessage"])', ['@self', "@{$this->prefix('messages')}"])
-				->addSetup('?->getClient()->onResponse([?, "onMessage"])', ['@self', "@{$this->prefix('messages')}"]);
+				->addSetup('?->getClient()->onRequest([?, "onMessage"])', ['@self', '@' . $this->prefix('messages')])
+				->addSetup('?->getClient()->onResponse([?, "onMessage"])', ['@self', '@' . $this->prefix('messages')]);
 
-			$builder->addDefinition($this->prefix('panel'))
-				->setClass('Milo\Github\NetteExtension\Panel', [
-					"@{$this->prefix('messages')}",
+			$builder
+				->addDefinition($this->prefix('panel'))
+				->setClass(Github\NetteExtension\Panel::class, [
+					'@' . $this->prefix('messages'),
 					'@session',
-					"@{$this->prefix('api')}",
+					'@' . $this->prefix('api'),
 					$userService
 				])
 				->setAutowired(FALSE);
-		}
-	}
 
-
-	protected function afterCompileImplementation($classType, $method)
-	{
-		if ($this->isBarAvailable()) {
-			$config = $this->getConfig($this->defaults);
-			if ($config['debugger']) {
-				$classType->methods['initialize']->addBody($method . '($this->getService(?));', [$this->prefix('panel')]);
-			}
+			$builder
+				->getDefinition('tracy.bar')
+				->addSetup('addPanel', ['@' . $this->prefix('panel')]);
 		}
 	}
 
@@ -175,24 +190,7 @@ final class Extension extends BC\Extension
 			return $value;
 		}
 
-		throw new \LogicException("Configuration 'cached' must be bool, positive integer or INF, but '$value' given.");
-	}
-
-
-	/**
-	 * @return bool
-	 */
-	private function isBarAvailable()
-	{
-		return class_exists('Tracy\Debugger') || class_exists('Nette\Diagnostics\Debugger');
-	}
-
-
-	public static function register($configurator, $name = 'github')
-	{
-		$configurator->onCompile[] = function ($config, $compiler) use ($name) {
-			$compiler->addExtension($name, new static);
-		};
+		throw new \LogicException("Configuration option 'cached' must be bool, positive integer or INF, but '$value' given.");
 	}
 
 }

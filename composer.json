@@ -11,18 +11,14 @@
 		}
 	],
 	"require": {
-		"php": ">=5.4.0",
+		"php": ">=5.6.0",
 		"milo/github-api": "~1.0",
-		"nette/di": "~2.2"
-	},
-	"conflict": {
-		"nette/nette": "<2.2"
+		"nette/di": "~2.4"
 	},
 	"suggest": {
 		"tracy/tracy": "To use Tracy bar features"
 	},
 	"autoload": {
-		"classmap": ["src/NetteExtension/"],
-		"files": ["src/NetteBC/nette-bc.php"]
+		"classmap": ["src/NetteExtension/"]
 	}
 }

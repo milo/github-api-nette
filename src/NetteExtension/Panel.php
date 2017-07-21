@@ -3,7 +3,8 @@
 namespace Milo\Github\NetteExtension;
 
 use Milo\Github;
-use Nette, Tracy;
+use Nette;
+use Tracy;
 
 
 /**
@@ -11,7 +12,7 @@ use Nette, Tracy;
  *
  * @author  Miloslav Hůla (https://github.com/milo)
  */
-class Panel extends Nette\Object implements BC\IBarPanel
+class Panel extends Nette\Object implements Tracy\IBarPanel
 {
 	/** @var Nette\Http\Session */
 	private $session;
@@ -129,13 +130,7 @@ class Panel extends Nette\Object implements BC\IBarPanel
 	 */
 	private function dumpHtml($var)
 	{
-		if (class_exists('Tracy\Dumper')) {
-			return Tracy\Dumper::toHtml($var, [Tracy\Dumper::COLLAPSE => TRUE]);
-		} elseif (class_exists('Nette\Diagnostics\Dumper')) {
-			return Nette\Diagnostics\Dumper::toHtml($var, [Nette\Diagnostics\Dumper::COLLAPSE => TRUE]);
-		} else {
-			return Nette\Diagnostics\Debugger::dump($var, TRUE);
-		}
+		return Tracy\Dumper::toHtml($var, [Tracy\Dumper::COLLAPSE => TRUE]);
 	}
 
 
@@ -145,11 +140,7 @@ class Panel extends Nette\Object implements BC\IBarPanel
 	 */
 	private function createInterval($value)
 	{
-		$dt = class_exists('Nette\Utils\DateTime')
-			? Nette\Utils\DateTime::from($value)
-			: Nette\DateTime::from($value);
-
-		return (new \DateTime)->diff($dt);
+		return (new \DateTime)->diff(Nette\Utils\DateTime::from($value));
 	}
 
 }
